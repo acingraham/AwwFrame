@@ -47,9 +47,21 @@ $(function() {
 
       $body.fadeOut(250, function() {
         $caption.text(caption);
+
+        $('img').remove();
+
+        var img = $('<img id="main-image" class="main-image">');
+        img.attr('src', 'img/' + image.filename);
+        img.one('load', function() {
+          $body.fadeIn(250);
+        });
+        img.prependTo('body');
+
+        /*
         $img.one('load', function() {
           $body.fadeIn(250);
         }).attr('src', 'img/' + image.filename);
+        */
       });
     }
 
