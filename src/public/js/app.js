@@ -46,8 +46,10 @@ $(function() {
       duration = image.duration || duration;
 
       $body.fadeOut(250, function() {
+        gc();
         $caption.text(caption);
 
+        /*
         $('img').remove();
 
         var img = $('<img id="main-image" class="main-image">');
@@ -56,12 +58,12 @@ $(function() {
           $body.fadeIn(250);
         });
         img.prependTo('body');
+        */
 
-        /*
         $img.one('load', function() {
           $body.fadeIn(250);
         }).attr('src', 'img/' + image.filename);
-        */
+
       });
     }
 
