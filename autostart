@@ -1,8 +1,10 @@
-# This should be placed at /home/pi/.config/lxsession/LXDE-pi/autostart
 @lxpanel --profile LXDE-pi
 @pcmanfm --desktop --profile LXDE-pi
 #@xscreensaver -no-splash
 @xset s off
 @xset -dpms
 @xset s noblank
+
+# Must apt-get install unclutter
+@unclutter -idle 0.1 -root
 @chromium-browser --kiosk --incognito --js-flags=--expose-gc http://localhost:8080
