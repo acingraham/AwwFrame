@@ -65,7 +65,7 @@ function getMedia() {
           if (exists) {
             db.updateTimestamp(chunk.originalUrl);
           } else {
-            var filepath = 'public/img/' + chunk.filename;
+            var filepath = __dirname + '/public/img/' + chunk.filename;
             var writeStream = fs.createWriteStream(filepath);
             writeStream.on('finish', function() {
               if (chunk.extension === '.gif') {
