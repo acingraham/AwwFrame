@@ -46,7 +46,9 @@ $(function() {
       duration = image.duration || duration;
 
       $body.fadeOut(250, function() {
-        gc();
+        if (typeof gc === 'function') {
+          gc();
+        }
 
         $caption.text(caption);
 
