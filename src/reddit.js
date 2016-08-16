@@ -23,67 +23,69 @@ function getExtension(url) {
 }
 
 function getMedia() {
-  request
-    .get('https://www.reddit.com/r/aww.json')
-    .pipe(through2.obj(
-      function(chunk, enc, done) {
-        this.response = this.response || '';
-        this.response += chunk;
-        done();
-      },
-      function(done) {
-        var outStream = this;
-        JSON.parse(this.response).data.children.forEach(function(child) {
-          outStream.push({
-            caption : child.data.title,
-            originalUrl: child.data.url
-          });
-        });
-        done();
-      }
-    ))
-    .pipe(through2.obj(function(chunk, enc, done) {
-      var url = removeQueryString(chunk.originalUrl);
-      url = convertGifvToGif(url);
-      var ext = getExtension(url);
-
-      chunk.extension = ext;
-
-      if (ext === '.jpg' || ext === '.png' || ext === '.gif') {
-        chunk.url = url;
-        chunk.filename = uuid.v4() + ext;
-        console.log('Adding ' + chunk.url);
-        this.push(chunk);
-      }
-
-      done();
-    }))
-    .pipe(through2.obj(function(chunk, enc, done) {
-      db.exists(chunk.originalUrl)
-        .then(function(exists) {
-          console.log('exists: ' + exists);
-          if (exists) {
-            db.updateTimestamp(chunk.originalUrl);
-          } else {
-            var filepath = __dirname + '/public/img/' + chunk.filename;
-            var writeStream = fs.createWriteStream(filepath);
-            writeStream.on('finish', function() {
-              if (chunk.extension === '.gif') {
-                // TODO - Make async
-                var buffer = fs.readFileSync(filepath);
-                chunk.duration = gifyParse.getInfo(buffer).duration; 
-              }
-
-              db.addMedia(chunk);
+  db.removeExcessMedia()
+    .then(function() {
+      request
+        .get('https://www.reddit.com/r/aww.json')
+        .pipe(through2.obj(
+          function(chunk, enc, done) {
+            this.response = this.response || '';
+            this.response += chunk;
+            done();
+          },
+          function(done) {
+            var outStream = this;
+            JSON.parse(this.response).data.children.forEach(function(child) {
+              outStream.push({
+                caption : child.data.title,
+                originalUrl: child.data.url
+              });
             });
-
-            request.get(chunk.url)
-              .pipe(writeStream);
+            done();
           }
-          done();
-        });
+        ))
+        .pipe(through2.obj(function(chunk, enc, done) {
+          var url = removeQueryString(chunk.originalUrl);
+          url = convertGifvToGif(url);
+          var ext = getExtension(url);
 
-    }));
+          chunk.extension = ext;
+
+          if (ext === '.jpg' || ext === '.png' || ext === '.gif') {
+            chunk.url = url;
+            chunk.filename = uuid.v4() + ext;
+            console.log('Adding ' + chunk.url);
+            this.push(chunk);
+          }
+
+          done();
+        }))
+        .pipe(through2.obj(function(chunk, enc, done) {
+          db.exists(chunk.originalUrl)
+            .then(function(exists) {
+              console.log('exists: ' + exists);
+              if (exists) {
+                db.updateTimestamp(chunk.originalUrl);
+              } else {
+                var filepath = __dirname + '/public/img/' + chunk.filename;
+                var writeStream = fs.createWriteStream(filepath);
+                writeStream.on('finish', function() {
+                  if (chunk.extension === '.gif') {
+                    // TODO - Make async
+                    var buffer = fs.readFileSync(filepath);
+                    chunk.duration = gifyParse.getInfo(buffer).duration;
+                  }
+
+                  db.addMedia(chunk);
+                });
+
+                request.get(chunk.url)
+                  .pipe(writeStream);
+              }
+              done();
+            });
+        }));
+    });
 }
 
 getMedia();
