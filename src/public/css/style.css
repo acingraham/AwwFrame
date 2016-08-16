@@ -20,12 +20,12 @@ body {
   position: absolute;
   font-family: Helvetica;
   background-color: rgb(20,20,20);
-  opacity: 0.8;
+  opacity: 0.6;
   color: white;
   font-size: 2em;
-  width: 50%;
+  width: 96%;
   left: 0;
   text-align: center;
-  padding: 1em 25%;
+  padding: 2%;
   bottom: 10%;
 }
