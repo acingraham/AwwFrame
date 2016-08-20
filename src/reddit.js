@@ -76,6 +76,12 @@ function updateExistingMedia(media) {
   console.log('Using ' + media.length + ' posts from Reddit');
   return Promise.all(media.map(updateSingleExistingMedia))
     .then(function(exists) {
+      var count = exists.reduce(function(sum, exist) {
+        return exist ? sum + 1 : sum;
+      }, 0);
+
+      console.log('=== Updated ' + count + ' docs ===');
+
       return media.filter(function(m, i) {
         return !exists[i];
       })

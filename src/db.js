@@ -30,7 +30,6 @@ function getMedia() {
 }
 
 function removeExcessMedia(newMediaCount) {
-  console.log('newMediaCount: ' + newMediaCount);
   return db.media.find(
     {},
     {
