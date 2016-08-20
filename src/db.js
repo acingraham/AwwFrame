@@ -2,17 +2,16 @@
 
 var pmongo = require('promised-mongo'),
     db     = pmongo('awwFrame', ['media']),
-    fs     = require('fs'),
+    fs     = require('graceful-fs'),
     fields = {
       _id      : 0,
       caption  : 1,
       duration : 1,
       filename : 1
     },
-    LIMIT = 25;
+    LIMIT = require('./constants').LIMIT;
 
 function addMedia(media) {
-  console.log('Inserting');
   media.ts = Date.now();
   return db.media.insert(media);
 }
@@ -30,7 +29,8 @@ function getMedia() {
   return db.media.find({}, fields).sort({ts: -1}).limit(LIMIT);
 }
 
-function removeExcessMedia() {
+function removeExcessMedia(newMediaCount) {
+  console.log('newMediaCount: ' + newMediaCount);
   return db.media.find(
     {},
     {
@@ -43,9 +43,9 @@ function removeExcessMedia() {
     ts : -1
   })
   .then(function(results) {
-    var removeList = results.slice(LIMIT);
+    var removeList = results.slice(Math.max(0, LIMIT - newMediaCount));
 
-    console.log('Removing ' + removeList.length + ' docs');
+    console.log('=== Removing ' + removeList.length + ' docs ===');
 
     if (!removeList.length) {
       return;
@@ -53,15 +53,18 @@ function removeExcessMedia() {
 
     removeList.forEach(function(doc) {
       var path = __dirname + '/public/img/' + doc.filename;
-      console.log('Deleting ' + path);
+      console.log(' - Deleting ' + path);
       fs.unlinkSync(path);
     });
 
-    var oldestTime = results.shift().ts;
+    var docsToRemove = removeList.map(function(item) {
+      return {
+        filename : item.filename
+      };
+    });
+
     return db.media.remove({
-      ts : {
-        $lte : oldestTime
-      }
+      $or : docsToRemove
     });
   });
 }

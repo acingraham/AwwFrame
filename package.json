@@ -8,6 +8,7 @@
     "express": "^4.14.0",
     "fs-promise": "^0.5.0",
     "gify-parse": "^1.0.5",
+    "graceful-fs": "^4.1.6",
     "promised-mongo": "^1.2.0",
     "request": "^2.74.0",
     "request-promise": "^4.1.1",
